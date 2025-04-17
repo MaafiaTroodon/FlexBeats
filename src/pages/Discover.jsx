@@ -35,7 +35,20 @@ const Discover = () => {
       </div>
 
       <div className="flex flex-wrap sm:justify-start justify-center gap-8">
-  {data?.data?.map((song, i) => (
+      {data?.data?.map((rawSong, i) => {
+  const song = {
+    key: rawSong.id,
+    title: rawSong.attributes?.albumName || 'Unknown',
+    subtitle: rawSong.attributes?.artistName || 'Unknown Artist',
+    images: {
+      coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '', // handle Apple-style image URLs
+    },
+    artists: [
+      { adamid: rawSong.id }, // fallback dummy artist ID
+    ],
+  };
+
+  return (
     <SongCard
       key={song.key}
       song={song}
@@ -44,7 +57,9 @@ const Discover = () => {
       data={data}
       i={i}
     />
-  ))}
+  );
+})}
+
 </div>
 
     </div>
