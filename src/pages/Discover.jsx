@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Error, Loader, SongCard } from '../components';
@@ -10,9 +10,9 @@ const Discover = () => {
   const dispatch = useDispatch();
   const { activeSong, isPlaying } = useSelector((state) => state.player);
   const { data, isFetching, error } = useGetTopChartsQuery();
-  const genreTitle = 'Pop';
+  const [visibleCount, setVisibleCount] = useState(20); // Start with 20 songs
 
-  console.log('data:', data); // 👈 Check this in dev tools!
+  const genreTitle = 'Pop';
 
   if (isFetching) return <Loader title="Loading songs..." />;
   if (error) return <Error />;
@@ -35,33 +35,41 @@ const Discover = () => {
       </div>
 
       <div className="flex flex-wrap sm:justify-start justify-center gap-8">
-      {data?.data?.map((rawSong, i) => {
-  const song = {
-    key: rawSong.id,
-    title: rawSong.attributes?.albumName || 'Unknown',
-    subtitle: rawSong.attributes?.artistName || 'Unknown Artist',
-    images: {
-      coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '', // handle Apple-style image URLs
-    },
-    artists: [
-      { adamid: rawSong.id }, // fallback dummy artist ID
-    ],
-  };
+        {data?.data?.slice(0, visibleCount).map((rawSong, i) => {
+          const song = {
+            key: rawSong.id,
+            title: rawSong.attributes?.albumName || 'Unknown',
+            subtitle: rawSong.attributes?.artistName || 'Unknown Artist',
+            images: {
+              coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '',
+            },
+            artists: [{ adamid: rawSong.id }],
+          };
 
-  return (
-    <SongCard
-      key={song.key}
-      song={song}
-      isPlaying={isPlaying}
-      activeSong={activeSong}
-      data={data}
-      i={i}
-    />
-  );
-})}
+          return (
+            <SongCard
+              key={song.key}
+              song={song}
+              isPlaying={isPlaying}
+              activeSong={activeSong}
+              data={data}
+              i={i}
+            />
+          );
+        })}
+      </div>
 
-</div>
-
+      {/* ✅ Show More Button */}
+      {visibleCount < data?.data?.length && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => setVisibleCount((prev) => prev + 20)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow-md"
+          >
+            Show More
+          </button>
+        </div>
+      )}
     </div>
   );
 };
