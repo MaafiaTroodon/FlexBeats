@@ -10,13 +10,26 @@ const SongCard = ({ song, isPlaying, activeSong, data, i }) => {
 
   const handlePauseClick = () => {
     dispatch(playPause(false));
+    const audio = document.querySelector('audio');
+    if (audio) audio.pause();
   };
 
-  const handlePlayClick = () => {
-    dispatch(setActiveSong({ song, data, i }));
+  const handlePlayClick = async () => {
+    dispatch(setActiveSong({ song, data: data.data, i }));
     dispatch(playPause(true));
+
+    const audio = document.querySelector('audio');
+    if (audio) {
+      try {
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+        }
+      } catch (err) {
+        console.error('Audio play failed:', err);
+      }
+    }
   };
- 
 
   return (
     <div className="flex flex-col w-[250px] p-4 bg-white/5 bg-opacity-80 backdrop-blur-sm animate-slideup rounded-lg cursor-pointer">
