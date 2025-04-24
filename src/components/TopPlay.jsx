@@ -12,33 +12,40 @@ import { useGetTopChartsQuery } from '../redux/services/shazamCore';
 import 'swiper/css';
 import 'swiper/css/free-mode';
 
-const TopChartCard = ({ song, i, isPlaying, activeSong, handlePauseClick, handlePlayClick }) => (
-  <div className={`w-full flex flex-row items-center hover:bg-[#4c426e] ${activeSong?.title === song?.title ? 'bg-[#4c426e]' : 'bg-transparent'} py-2 p-4 rounded-lg cursor-pointer mb-2`}>
-    <h3 className="font-bold text-base text-white mr-3">{i + 1}.</h3>
-    <div className="flex-1 flex flex-row justify-between items-center">
-      <img className="w-20 h-20 rounded-lg" src={song?.images?.coverart} alt={song?.title} />
-      <div className="flex-1 flex flex-col justify-center mx-3">
-        <Link to={`/songs/${song.key}`}>
-          <p className="text-xl font-bold text-white">
-            {song?.title}
-          </p>
-        </Link>
-        <Link to={`/artists/${song?.artists[0].adamid}`}>
-          <p className="text-base text-gray-300 mt-1">
-            {song?.subtitle}
-          </p>
-        </Link>
+const TopChartCard = ({ song, i, isPlaying, activeSong, handlePauseClick, handlePlayClick }) => {
+  const title = song?.attributes?.name || song?.title;
+  const subtitle = song?.attributes?.artistName || song?.subtitle;
+  const image = song?.attributes?.artwork?.url?.replace('{w}', '125').replace('{h}', '125') || song?.images?.coverart;
+  const songId = song?.id || song?.key;
+
+  const isActive = activeSong?.id === songId;
+
+  return (
+    <div
+      className={`w-full flex flex-row items-center hover:bg-[#4c426e] ${
+        isActive ? 'bg-[#4c426e]' : 'bg-transparent'
+      } py-2 p-4 rounded-lg cursor-pointer mb-2`}
+    >
+      <h3 className="font-bold text-base text-white mr-3">{i + 1}.</h3>
+      <div className="flex-1 flex flex-row justify-between items-center">
+        <img className="w-20 h-20 rounded-lg" src={image} alt={title} />
+        <div className="flex-1 flex flex-col justify-center mx-3">
+          <Link to={`/songs/${songId}`}>
+            <p className="text-xl font-bold text-white truncate">{title}</p>
+          </Link>
+          <p className="text-base text-gray-300 mt-1 truncate">{subtitle}</p>
+        </div>
       </div>
+      <PlayPause
+        isPlaying={isPlaying}
+        activeSong={activeSong}
+        song={song}
+        handlePause={handlePauseClick}
+        handlePlay={() => handlePlayClick(song, i)}
+      />
     </div>
-    <PlayPause
-      isPlaying={isPlaying}
-      activeSong={activeSong}
-      song={song}
-      handlePause={handlePauseClick}
-      handlePlay={handlePlayClick}
-    />
-  </div>
-);
+  );
+};
 
 const TopPlay = () => {
   const dispatch = useDispatch();
@@ -47,17 +54,17 @@ const TopPlay = () => {
   const divRef = useRef(null);
 
   useEffect(() => {
-    divRef.current.scrollIntoView({ behavior: 'smooth' });
-  });
+    divRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
-  const topPlays = data?.data?.slice(0, 5);
+  const topPlays = data?.data?.slice(0, 5) || [];
 
   const handlePauseClick = () => {
     dispatch(playPause(false));
   };
 
   const handlePlayClick = (song, i) => {
-    dispatch(setActiveSong({ song, data, i }));
+    dispatch(setActiveSong({ song, data: topPlays, i }));
     dispatch(playPause(true));
   };
 
@@ -72,15 +79,15 @@ const TopPlay = () => {
         </div>
 
         <div className="mt-4 flex flex-col gap-1">
-          {topPlays?.map((song, i) => (
+          {topPlays.map((song, i) => (
             <TopChartCard
-              key={song.key}
+              key={song?.id || song?.key || i}
               song={song}
               i={i}
               isPlaying={isPlaying}
               activeSong={activeSong}
               handlePauseClick={handlePauseClick}
-              handlePlayClick={() => handlePlayClick(song, i)}
+              handlePlayClick={handlePlayClick}
             />
           ))}
         </div>
@@ -103,17 +110,26 @@ const TopPlay = () => {
           modules={[FreeMode]}
           className="mt-4"
         >
-          {topPlays?.slice(0, 5).map((artist) => (
-            <SwiperSlide
-              key={artist?.key}
-              style={{ width: '25%', height: 'auto' }}
-              className="shadow-lg rounded-full animate-slideright"
-            >
-              <Link to={`/artists/${artist?.artists[0].adamid}`}>
-                <img src={artist?.images?.background} alt="Name" className="rounded-full w-full object-cover" />
-              </Link>
-            </SwiperSlide>
-          ))}
+          {topPlays.map((artist, i) => {
+            const artistId = artist?.relationships?.artists?.data?.[0]?.id || artist?.artists?.[0]?.adamid;
+            const img =
+              artist?.attributes?.artwork?.url?.replace('{w}', '250').replace('{h}', '250') ||
+              artist?.images?.background;
+
+            if (!artistId || !img) return null;
+
+            return (
+              <SwiperSlide
+                key={artistId || i}
+                style={{ width: '25%', height: 'auto' }}
+                className="shadow-lg rounded-full animate-slideright"
+              >
+                <Link to={`/artists/${artistId}`}>
+                  <img src={img} alt="Artist" className="rounded-full w-full object-cover" />
+                </Link>
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </div>
     </div>

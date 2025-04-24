@@ -7,21 +7,24 @@ export const shazamCoreApi = createApi({
     prepareHeaders: (headers) => {
       headers.set('x-rapidapi-key', '1aea0e1a6cmsh467bb5203be1de1p19752fjsn9fb10026f598');
       headers.set('x-rapidapi-host', 'shazam-core7.p.rapidapi.com');
-
       return headers;
     },
   }),
   endpoints: (builder) => ({
-    getTopCharts: builder.query({ query: () => 'charts/get-top-songs-in-world' }),
+    getTopCharts: builder.query({
+      query: () => 'charts/get-top-songs-in-world',
+    }),
+    getSongDetails: builder.query({
+      query: (songid) => `tracks/get-details?key=${songid}`,
+    }),
+    getSongRelated: builder.query({
+      query: (songid) => `tracks/list-recommendations?key=${songid}`,
+    }),
   }),
 });
 
 export const {
   useGetTopChartsQuery,
-  useGetSongsByGenreQuery,
-  useGetSongsByCountryQuery,
-  useGetSongsBySearchQuery,
-  useGetArtistDetailsQuery,
   useGetSongDetailsQuery,
   useGetSongRelatedQuery,
 } = shazamCoreApi;
