@@ -31,8 +31,7 @@ const { data, isFetching: isFetchinRelatedSongs, error } = useGetSongRelatedQuer
     dispatch(setActiveSong({ song, data, i }));
     dispatch(playPause(true));
   };
-  console.log("Full songData object 👉", JSON.stringify(songData, null, 2));
-
+  
   console.log("songid from useParams:", songid);
   return (
     <div className="flex flex-col">
