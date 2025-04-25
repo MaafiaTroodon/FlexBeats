@@ -6,6 +6,8 @@ import { DetailsHeader, Error, Loader, RelatedSongs } from '../components';
 import { setActiveSong, playPause } from '../redux/features/playerSlice';
 import { useGetSongDetailsQuery, useGetSongRelatedQuery } from '../redux/services/shazamCore';
 
+
+
 const SongDetails = () => {
   const dispatch = useDispatch();
   const { songid, id: artistId } = useParams();
@@ -29,7 +31,9 @@ const { data, isFetching: isFetchinRelatedSongs, error } = useGetSongRelatedQuer
     dispatch(setActiveSong({ song, data, i }));
     dispatch(playPause(true));
   };
+  console.log("Full songData object 👉", JSON.stringify(songData, null, 2));
 
+  console.log("songid from useParams:", songid);
   return (
     <div className="flex flex-col">
       <DetailsHeader
