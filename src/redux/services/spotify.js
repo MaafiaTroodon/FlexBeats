@@ -1,3 +1,5 @@
+// src/redux/services/spotify.js
+
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const spotifyApi = createApi({
@@ -33,6 +35,18 @@ export const spotifyApi = createApi({
         },
       }),
     }),
+    searchArtist: builder.query({
+      query: (artistName) => ({
+        url: 'search/',
+        params: { q: artistName, type: 'artist' },
+      }),
+    }),
+    getArtistDetails: builder.query({
+      query: (spotifyArtistId) => ({
+        url: 'artists/',
+        params: { ids: spotifyArtistId },
+      }),
+    }),
   }),
 });
 
@@ -40,4 +54,6 @@ export const {
   useSearchSongQuery,
   useGetTrackLyricsQuery,
   useGetTrackRecommendationsQuery,
+  useSearchArtistQuery,
+  useGetArtistDetailsQuery,
 } = spotifyApi;
