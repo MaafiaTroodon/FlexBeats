@@ -1,40 +1,31 @@
-// src/pages/ArtistDetails.jsx
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { DetailsHeader, Error, Loader, RelatedSongs } from '../components';
-import { useGetArtistDetailsQuery, useSearchSongQuery, useSearchArtistQuery } from '../redux/services/spotify';
-
+import { useGetArtistDetailsQuery, useSearchArtistQuery, useGetArtistAlbumsQuery } from '../redux/services/spotify';
 
 const ArtistDetails = () => {
   const { id: artistName } = useParams(); // you pass artist name in URL
   const { activeSong, isPlaying } = useSelector((state) => state.player);
 
-  // Step 1: First search the artist on Spotify by name
+  // Step 1: Search artist
   const { data: searchArtistData, isFetching: isFetchingArtistSearch, error: artistSearchError } = useSearchArtistQuery(artistName);
-
   const spotifyArtistId = searchArtistData?.artists?.items?.[0]?.id;
 
-  // Step 2: Get artist full details
-  const { data: artistData, isFetching: isFetchingArtistDetails, error: artistDetailsError } = useGetArtistDetailsQuery(spotifyArtistId, {
-    skip: !spotifyArtistId,
-  });
+  // Step 2: Get full artist details
+  const { data: artistData, isFetching: isFetchingArtistDetails, error: artistDetailsError } = useGetArtistDetailsQuery(spotifyArtistId, { skip: !spotifyArtistId });
 
-  // Step 3: Get related songs using search
-  const { data: relatedSongsData, isFetching: isFetchingRelatedSongs, error: relatedSongsError } = useSearchSongQuery(artistName, {
-    skip: !artistName,
-  });
+  // Step 3: Get artist albums/singles/eps
+  const { data: albumsData, isFetching: isFetchingAlbums, error: albumsError } = useGetArtistAlbumsQuery(spotifyArtistId, { skip: !spotifyArtistId });
 
-  if (isFetchingArtistSearch || isFetchingArtistDetails || isFetchingRelatedSongs) return <Loader title="Loading artist details..." />;
-
-  if (artistSearchError || artistDetailsError || relatedSongsError) return <Error />;
+  if (isFetchingArtistSearch || isFetchingArtistDetails || isFetchingAlbums) return <Loader title="Loading artist details..." />;
+  if (artistSearchError || artistDetailsError || albumsError) return <Error />;
 
   const artist = artistData?.artists?.[0];
 
   return (
     <div className="flex flex-col">
-      {/* Artist header */}
+      {/* Artist Header */}
       <DetailsHeader
         artistId={spotifyArtistId}
         artistData={{
@@ -47,7 +38,7 @@ const ArtistDetails = () => {
         }}
       />
 
-      {/* Artist stats */}
+      {/* Artist Stats */}
       <div className="mt-10">
         <h2 className="text-white text-3xl font-bold">Artist Overview:</h2>
         <p className="text-gray-400 text-base my-4">Followers: {artist?.followers?.total?.toLocaleString()}</p>
@@ -55,19 +46,19 @@ const ArtistDetails = () => {
         <p className="text-gray-400 text-base my-4">Popularity Score: {artist?.popularity}/100</p>
       </div>
 
-      {/* Related Songs */}
+      {/* Artist Albums */}
       <div className="mt-10">
-        <h2 className="text-white text-3xl font-bold">Related Songs:</h2>
-        <div className="mt-4 flex flex-col">
-          {relatedSongsData?.tracks?.items?.map((song, i) => (
-            <RelatedSongs
-              key={song.id}
-              song={song}
-              i={i}
-              activeSong={activeSong}
-              isPlaying={isPlaying}
-              data={relatedSongsData.tracks.items}
-            />
+        <h2 className="text-white text-3xl font-bold">Top Releases:</h2>
+        <div className="flex flex-wrap gap-4 mt-4">
+          {albumsData?.items?.slice(0, 10).map((album) => (
+            <div key={album.id} className="w-[150px] flex flex-col items-center">
+              <img
+                src={album.images[0]?.url}
+                alt={album.name}
+                className="w-full h-auto rounded-lg mb-2"
+              />
+              <p className="text-white text-center text-sm">{album.name}</p>
+            </div>
           ))}
         </div>
       </div>
