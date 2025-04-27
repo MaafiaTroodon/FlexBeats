@@ -4,35 +4,30 @@ import { useSelector, useDispatch } from 'react-redux';
 import { DetailsHeader, Error, Loader, RelatedSongs } from '../components';
 import { setActiveSong, playPause } from '../redux/features/playerSlice';
 import { useSearchSongQuery, useGetTrackLyricsQuery, useGetTrackRecommendationsQuery } from '../redux/services/spotify';
-import { useGetTopChartsQuery } from '../redux/services/shazamCore'; // (optional if you need Top charts separately)
+import { useGetTopChartsQuery } from '../redux/services/shazamCore';
 
 const SongDetails = () => {
   const dispatch = useDispatch();
-  const { songid, id: artistId } = useParams(); 
+  const { songid, id: artistId } = useParams();
   const { activeSong, isPlaying } = useSelector((state) => state.player);
 
   const { data: topChartsData, isFetching: isFetchingTopCharts } = useGetTopChartsQuery();
 
-// 🚀 THIS IS THE CORRECT ONE NOW:
-const clickedSong = topChartsData?.data?.find(song => String(song.id) === String(songid));
+  const clickedSong = topChartsData?.data?.find(song => String(song.id) === String(songid));
 
-const searchTerm = clickedSong ? `${clickedSong.attributes.name} ${clickedSong.attributes.artistName}` : '';
+  const searchTerm = clickedSong ? `${clickedSong.attributes.name.replace(/[()]/g, '')} ${clickedSong.attributes.artistName}` : '';
 
-  
   const { data: spotifySearchData, isFetching: isFetchingSpotifySearch } = useSearchSongQuery(searchTerm, { skip: !clickedSong });
   const spotifyTrackId = spotifySearchData?.tracks?.items?.[0]?.id;
-  
+
   const { data: spotifyLyricsData, isFetching: isFetchingLyrics } = useGetTrackLyricsQuery(spotifyTrackId, { skip: !spotifyTrackId });
   const { data: recommendationsData, isFetching: isFetchingRecommendations } = useGetTrackRecommendationsQuery(
     { trackId: spotifyTrackId, artistId: spotifySearchData?.tracks?.items?.[0]?.artists?.[0]?.id },
     { skip: !spotifyTrackId }
   );
-  
-  // 💥 VERY IMPORTANT
-  if (isFetchingTopCharts || !clickedSong || isFetchingSpotifySearch || isFetchingLyrics || isFetchingRecommendations) {
+
+  if (isFetchingTopCharts || isFetchingSpotifySearch || isFetchingLyrics || isFetchingRecommendations)
     return <Loader title="Loading song details..." />;
-  }
-  
 
   const handlePauseClick = () => {
     dispatch(playPause(false));
@@ -48,19 +43,18 @@ const searchTerm = clickedSong ? `${clickedSong.attributes.name} ${clickedSong.a
   return (
     <div className="flex flex-col">
       <DetailsHeader
-  artistId={artistId}
-  songData={{
-    title: spotifyTrack?.name || clickedSong?.attributes?.name || 'Unknown Title',
-    subtitle: spotifyTrack?.artists?.[0]?.name || clickedSong?.attributes?.artistName || 'Unknown Artist',
-    images: {
-      coverart: spotifyTrack?.album?.images?.[0]?.url || clickedSong?.attributes?.artwork?.url,
-    },
-    genres: {
-      primary: spotifyTrack?.album?.name || clickedSong?.attributes?.genreNames?.[0],
-    },
-  }}
-/>
-
+        artistId={artistId}
+        songData={{
+          title: spotifyTrack?.name || clickedSong?.attributes?.name || 'Unknown Title',
+          subtitle: spotifyTrack?.artists?.[0]?.name || clickedSong?.attributes?.artistName || 'Unknown Artist',
+          images: {
+            coverart: spotifyTrack?.album?.images?.[0]?.url || clickedSong?.attributes?.artwork?.url?.replace('{w}', '500')?.replace('{h}', '500'),
+          },
+          genres: {
+            primary: spotifyTrack?.album?.name || clickedSong?.attributes?.genreNames?.[0],
+          },
+        }}
+      />
 
       <div className="mb-10">
         <h2 className="text-white text-3xl font-bold">Lyrics:</h2>
