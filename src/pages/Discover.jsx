@@ -44,7 +44,7 @@ const Discover = () => {
               coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '',
             },
             artists: [{ adamid: rawSong.id }],
-            url: rawSong.attributes?.previews?.[0]?.url || '', // ✅ THIS IS THE AUDIO
+            url: rawSong.attributes?.previews?.[0]?.url || '', 
           };
           
 
