@@ -47,16 +47,16 @@ export const spotifyApi = createApi({
         params: { ids: spotifyArtistId },
       }),
     }),
-    getArtistAlbums: builder.query({    // <-- ADDED THIS
+    getArtistAlbums: builder.query({
       query: (artistId) => ({
-        url: `artists/${artistId}/albums`,
+        url: 'artist_albums/',
         params: {
-          include_groups: 'album,single,compilation',
-          market: 'US',
-          limit: 10,
+          id: artistId,
+          offset: 0,
+          limit: 20,
         },
       }),
-    }),
+    }),    
   }),
 });
 

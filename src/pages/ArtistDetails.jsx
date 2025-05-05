@@ -47,21 +47,23 @@ const ArtistDetails = () => {
       </div>
 
       {/* Artist Albums */}
+      {/* Artist Albums */}
       <div className="mt-10">
-        <h2 className="text-white text-3xl font-bold">Top Releases:</h2>
-        <div className="flex flex-wrap gap-4 mt-4">
-          {albumsData?.items?.slice(0, 10).map((album) => (
-            <div key={album.id} className="w-[150px] flex flex-col items-center">
-              <img
-                src={album.images[0]?.url}
-                alt={album.name}
-                className="w-full h-auto rounded-lg mb-2"
-              />
-              <p className="text-white text-center text-sm">{album.name}</p>
-            </div>
-          ))}
-        </div>
+  <h2 className="text-white text-3xl font-bold">Top Releases:</h2>
+  <div className="flex flex-wrap gap-4 mt-4">
+    {albumsData?.data?.albums?.items?.slice(0, 10).map((album) => (
+      <div key={album.id} className="w-[150px] flex flex-col items-center">
+        <img
+          src={album.coverArt?.sources?.[0]?.url}
+          alt={album.name}
+          className="w-full h-auto rounded-lg mb-2"
+        />
+        <p className="text-white text-center text-sm">{album.name}</p>
       </div>
+    ))}
+  </div>
+</div>
+
     </div>
   );
 };
