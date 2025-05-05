@@ -1,5 +1,4 @@
 // src/redux/services/shazamCore.js
-
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const shazamCoreApi = createApi({
@@ -18,9 +17,10 @@ export const shazamCoreApi = createApi({
     }),
     getSongsByCountry: builder.query({
       query: (countryCode) => ({
-        url: 'charts/get-top-songs-in-country',
+        url: 'charts/get-top-songs-in_country_by_genre',
         params: {
           country_code: countryCode,
+          genre: 'POP', // You can make this dynamic later
           limit: 10,
         },
       }),
