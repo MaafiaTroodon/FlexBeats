@@ -1,5 +1,3 @@
-// src/redux/features/playerSlice.js
-
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -16,32 +14,58 @@ const playerSlice = createSlice({
   initialState,
   reducers: {
     setActiveSong: (state, action) => {
-      state.activeSong = action.payload.song;
+      const { song, data, i } = action.payload;
 
-      const incomingData = action.payload.data;
+      // 🔄 Normalize audio URL across different APIs
+      let url = song?.url;
+      if (!url && song?.hub?.actions?.[0]?.uri) {
+        url = song.hub.actions[0].uri;
+      } else if (!url && song?.attributes?.previews?.[0]?.url) {
+        url = song.attributes.previews[0].url;
+      }
 
-      if (Array.isArray(incomingData)) {
-        state.currentSongs = incomingData;
-      } else if (incomingData?.tracks?.hits) {
-        state.currentSongs = incomingData.tracks.hits;
-      } else if (incomingData?.tracks) {
-        state.currentSongs = incomingData.tracks;
+      state.activeSong = { ...song, url };
+
+      if (Array.isArray(data)) {
+        state.currentSongs = data;
+      } else if (data?.tracks?.hits) {
+        state.currentSongs = data.tracks.hits;
+      } else if (data?.tracks) {
+        state.currentSongs = data.tracks;
       } else {
         state.currentSongs = [];
       }
 
-      state.currentIndex = action.payload.i;
+      state.currentIndex = i;
       state.isActive = true;
     },
 
     nextSong: (state, action) => {
-      state.activeSong = state.currentSongs[action.payload];
+      const next = state.currentSongs[action.payload];
+
+      let url = next?.url;
+      if (!url && next?.hub?.actions?.[0]?.uri) {
+        url = next.hub.actions[0].uri;
+      } else if (!url && next?.attributes?.previews?.[0]?.url) {
+        url = next.attributes.previews[0].url;
+      }
+
+      state.activeSong = { ...next, url };
       state.currentIndex = action.payload;
       state.isActive = true;
     },
 
     prevSong: (state, action) => {
-      state.activeSong = state.currentSongs[action.payload];
+      const prev = state.currentSongs[action.payload];
+
+      let url = prev?.url;
+      if (!url && prev?.hub?.actions?.[0]?.uri) {
+        url = prev.hub.actions[0].uri;
+      } else if (!url && prev?.attributes?.previews?.[0]?.url) {
+        url = prev.attributes.previews[0].url;
+      }
+
+      state.activeSong = { ...prev, url };
       state.currentIndex = action.payload;
       state.isActive = true;
     },

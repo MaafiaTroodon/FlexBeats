@@ -1,8 +1,7 @@
-// SongCard.jsx
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+
 import PlayPause from './PlayPause';
 import { playPause, setActiveSong } from '../redux/features/playerSlice';
 
@@ -10,42 +9,16 @@ const SongCard = ({ song, isPlaying, activeSong, data, i }) => {
   const dispatch = useDispatch();
 
   const handlePauseClick = () => {
-    const audio = document.getElementById('custom-audio');
-    if (audio) {
-      audio.pause();
-    }
     dispatch(playPause(false));
   };
 
-  const handlePlayClick = async () => {
-    const audio = document.getElementById('custom-audio') || (() => {
-      const a = document.createElement('audio');
-      a.id = 'custom-audio';
-      document.body.appendChild(a);
-      return a;
-    })();
-
-    const songUrl = song?.hub?.actions?.[0]?.uri;
-
-    // If the song is the same and already playing, toggle pause
+  const handlePlayClick = () => {
+    // If already playing same song, toggle pause
     if (activeSong?.key === song.key && isPlaying) {
-      audio.pause();
       dispatch(playPause(false));
-      return;
-    }
-
-    dispatch(setActiveSong({ song, data, i }));
-    dispatch(playPause(true));
-
-    if (songUrl) {
-      audio.src = songUrl;
-      try {
-        await audio.play();
-      } catch (err) {
-        console.error('Playback error:', err);
-      }
     } else {
-      console.warn('❌ No preview available for this track');
+      dispatch(setActiveSong({ song, data, i }));
+      dispatch(playPause(true));
     }
   };
 
