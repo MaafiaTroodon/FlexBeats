@@ -20,8 +20,27 @@ export const shazamCoreApi = createApi({
         url: 'charts/get-top-songs-in_country_by_genre',
         params: {
           country_code: countryCode,
-          genre: 'POP', // You can make this dynamic later
+          genre: 'POP',
           limit: 10,
+        },
+      }),
+    }),
+    searchShazamArtist: builder.query({
+      query: (artistName) => ({
+        url: 'search',
+        params: {
+          term: artistName,
+          locale: 'en-US',
+          offset: 0,
+          limit: 1,
+        },
+      }),
+    }),
+    getTopSongsByAdamId: builder.query({
+      query: (adamid) => ({
+        url: 'artist/get-top-songs',
+        params: {
+          artist_id: adamid,
         },
       }),
     }),
@@ -31,4 +50,6 @@ export const shazamCoreApi = createApi({
 export const {
   useGetTopChartsQuery,
   useGetSongsByCountryQuery,
+  useSearchShazamArtistQuery,
+  useGetTopSongsByAdamIdQuery,
 } = shazamCoreApi;

@@ -1,69 +1,112 @@
+// src/pages/ArtistDetails.jsx
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { DetailsHeader, Error, Loader, RelatedSongs } from '../components';
-import { useGetArtistDetailsQuery, useSearchArtistQuery, useGetArtistAlbumsQuery } from '../redux/services/spotify';
+
+import {
+  useSearchArtistQuery,
+  useGetArtistDetailsQuery as useSpotifyArtistDetailsQuery,
+  useGetArtistAlbumsQuery,
+} from '../redux/services/spotify';
+import {
+  useSearchShazamArtistQuery,
+  useGetTopSongsByAdamIdQuery,
+} from '../redux/services/shazamCore';
+
+
 
 const ArtistDetails = () => {
-  const { id: artistName } = useParams(); // you pass artist name in URL
+  const { id } = useParams();
   const { activeSong, isPlaying } = useSelector((state) => state.player);
 
-  // Step 1: Search artist
-  const { data: searchArtistData, isFetching: isFetchingArtistSearch, error: artistSearchError } = useSearchArtistQuery(artistName);
-  const spotifyArtistId = searchArtistData?.artists?.items?.[0]?.id;
+  const isSpotifyId = id.length >= 20;
 
-  // Step 2: Get full artist details
-  const { data: artistData, isFetching: isFetchingArtistDetails, error: artistDetailsError } = useGetArtistDetailsQuery(spotifyArtistId, { skip: !spotifyArtistId });
+  const {
+    data: searchData,
+    isFetching: isSearching,
+    error: searchError,
+  } = useSearchArtistQuery(id, { skip: isSpotifyId });
 
-  // Step 3: Get artist albums/singles/eps
-  const { data: albumsData, isFetching: isFetchingAlbums, error: albumsError } = useGetArtistAlbumsQuery(spotifyArtistId, { skip: !spotifyArtistId });
+  const spotifyId = isSpotifyId ? id : searchData?.artists?.items?.[0]?.id;
 
-  if (isFetchingArtistSearch || isFetchingArtistDetails || isFetchingAlbums) return <Loader title="Loading artist details..." />;
-  if (artistSearchError || artistDetailsError || albumsError) return <Error />;
+  const {
+    data: artistData,
+    isFetching: isFetchingArtist,
+    error: artistError,
+  } = useSpotifyArtistDetailsQuery(spotifyId, { skip: !spotifyId });
 
-  const artist = artistData?.artists?.[0];
+  const {
+    data: albumsData,
+    isFetching: isFetchingAlbums,
+    error: albumsError,
+  } = useGetArtistAlbumsQuery(spotifyId, { skip: !spotifyId });
+
+  const artistName = isSpotifyId ? artistData?.artists?.[0]?.name : id;
+
+  const {
+    data: shazamSearchData,
+    isFetching: isFetchingShazamSearch,
+    error: shazamSearchError,
+  } = useSearchShazamArtistQuery(artistName, { skip: !artistName });
+
+  const adamid = shazamSearchData?.tracks?.hits?.[0]?.artists?.[0]?.adamid;
+
+  const {
+    data: topSongsData,
+    isFetching: isFetchingTopSongs,
+    error: topSongsError,
+  } = useGetTopSongsByAdamIdQuery(adamid, { skip: !adamid });
+
+  const isLoading =
+    isSearching || isFetchingArtist || isFetchingAlbums || isFetchingShazamSearch || isFetchingTopSongs;
+  const hasError =
+    !artistData?.artists?.[0] || artistError || albumsError || shazamSearchError || topSongsError;
+
+  if (isLoading) return <Loader title="Loading artist details..." />;
+  if (hasError) return <Error />;
+
+  const artist = artistData.artists[0];
 
   return (
     <div className="flex flex-col">
-      {/* Artist Header */}
       <DetailsHeader
-        artistId={spotifyArtistId}
+        artistId={spotifyId}
         artistData={{
-          title: artist?.name,
-          subtitle: artist?.genres?.[0] || 'Unknown Genre',
+          title: artist.name,
+          subtitle: artist.genres?.[0] || 'Unknown Genre',
           images: { coverart: artist?.images?.[0]?.url },
-          genres: { primary: artist?.genres?.[0] },
-          followers: artist?.followers?.total,
-          popularity: artist?.popularity,
+          genres: { primary: artist.genres?.[0] },
+          followers: artist.followers?.total?.toLocaleString(),
+          popularity: artist.popularity,
         }}
       />
 
-      {/* Artist Stats */}
       <div className="mt-10">
-        <h2 className="text-white text-3xl font-bold">Artist Overview:</h2>
-        <p className="text-gray-400 text-base my-4">Followers: {artist?.followers?.total?.toLocaleString()}</p>
-        <p className="text-gray-400 text-base my-4">Genres: {artist?.genres?.join(', ')}</p>
-        <p className="text-gray-400 text-base my-4">Popularity Score: {artist?.popularity}/100</p>
-      </div>
-
-      {/* Artist Albums */}
-      {/* Artist Albums */}
-      <div className="mt-10">
-  <h2 className="text-white text-3xl font-bold">Top Releases:</h2>
-  <div className="flex flex-wrap gap-4 mt-4">
-    {albumsData?.data?.albums?.items?.slice(0, 10).map((album) => (
-      <div key={album.id} className="w-[150px] flex flex-col items-center">
-        <img
-          src={album.coverArt?.sources?.[0]?.url}
-          alt={album.name}
-          className="w-full h-auto rounded-lg mb-2"
+        <h2 className="text-white text-3xl font-bold">Top Songs</h2>
+        <RelatedSongs
+          data={topSongsData?.data || []}
+          artistId={id}
+          isPlaying={isPlaying}
+          activeSong={activeSong}
         />
-        <p className="text-white text-center text-sm">{album.name}</p>
       </div>
-    ))}
-  </div>
-</div>
 
+      <div className="mt-10">
+        <h2 className="text-white text-3xl font-bold">Albums</h2>
+        <div className="flex flex-wrap gap-4 mt-4">
+          {albumsData?.data?.albums?.items?.slice(0, 10).map((album) => (
+            <div key={album.id} className="w-[150px] flex flex-col items-center">
+              <img
+                src={album.coverArt?.sources?.[0]?.url}
+                alt={album.name}
+                className="w-full h-auto rounded-lg mb-2"
+              />
+              <p className="text-white text-center text-sm">{album.name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
