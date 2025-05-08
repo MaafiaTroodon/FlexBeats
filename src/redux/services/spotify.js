@@ -1,3 +1,6 @@
+// ✅ Fixed spotify.js and ArtistDetails.jsx integration
+
+// --- src/redux/services/spotify.js ---
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const spotifyApi = createApi({
@@ -11,10 +14,32 @@ export const spotifyApi = createApi({
     },
   }),
   endpoints: (builder) => ({
+    searchSong: builder.query({
+      query: (searchTerm) => ({
+        url: 'search/',
+        params: { q: searchTerm, type: 'track' },
+      }),
+    }),
+    getTrackLyrics: builder.query({
+      query: (spotify_track_id) => ({
+        url: 'track_lyrics/',
+        params: { id: spotify_track_id },
+      }),
+    }),
+    getTrackRecommendations: builder.query({
+      query: ({ trackId, artistId }) => ({
+        url: 'recommendations/',
+        params: {
+          seed_tracks: trackId,
+          seed_artists: artistId,
+          limit: 20,
+        },
+      }),
+    }),
     searchArtist: builder.query({
       query: (artistName) => ({
         url: 'search/',
-        params: { q: artistName, type: 'artist' },
+        params: { q: artistName, type: 'artist', limit: 1 },
       }),
     }),
     getArtistDetails: builder.query({
@@ -42,37 +67,15 @@ export const spotifyApi = createApi({
         },
       }),
     }),
-    getTrackLyrics: builder.query({
-      query: (spotify_track_id) => ({
-        url: 'track_lyrics/',
-        params: { id: spotify_track_id },
-      }),
-    }),
-    getTrackRecommendations: builder.query({
-      query: ({ trackId, artistId }) => ({
-        url: 'recommendations/',
-        params: {
-          seed_tracks: trackId,
-          seed_artists: artistId,
-          limit: 20,
-        },
-      }),
-    }),
-    searchSong: builder.query({
-      query: (searchTerm) => ({
-        url: 'search/',
-        params: { q: searchTerm, type: 'track' },
-      }),
-    }),
   }),
 });
 
 export const {
+  useSearchSongQuery,
+  useGetTrackLyricsQuery,
+  useGetTrackRecommendationsQuery,
   useSearchArtistQuery,
   useGetArtistDetailsQuery,
   useGetArtistAlbumsQuery,
   useGetArtistTopTracksQuery,
-  useGetTrackLyricsQuery,
-  useGetTrackRecommendationsQuery,
-  useSearchSongQuery,
 } = spotifyApi;
