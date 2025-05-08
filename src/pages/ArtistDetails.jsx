@@ -1,40 +1,48 @@
-// src/pages/ArtistDetails.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { DetailsHeader, Error, Loader, RelatedSongs } from '../components';
 
 import {
   useSearchArtistQuery,
-  useGetArtistDetailsQuery as useSpotifyArtistDetailsQuery,
+  useGetArtistDetailsQuery,
   useGetArtistAlbumsQuery,
+  useGetArtistTopTracksQuery,
 } from '../redux/services/spotify';
-import {
-  useSearchShazamArtistQuery,
-  useGetTopSongsByAdamIdQuery,
-} from '../redux/services/shazamCore';
-
-
 
 const ArtistDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // could be Spotify ID or Shazam artist adamid
   const { activeSong, isPlaying } = useSelector((state) => state.player);
 
   const isSpotifyId = id.length >= 20;
+  const fallbackArtistName = activeSong?.subtitle || activeSong?.attributes?.artistName || 'Eminem';
 
+  console.log("🔎 Mounted with ID:", id);
+  console.log("🧠 isSpotifyId:", isSpotifyId);
+  console.log("🎤 Fallback artist name:", fallbackArtistName);
+
+  // Step 1: Search artist by name if not a Spotify ID
   const {
     data: searchData,
     isFetching: isSearching,
     error: searchError,
-  } = useSearchArtistQuery(id, { skip: isSpotifyId });
+  } = useSearchArtistQuery(fallbackArtistName, { skip: isSpotifyId });
 
-  const spotifyId = isSpotifyId ? id : searchData?.artists?.items?.[0]?.id;
+  // Step 2: Determine Spotify ID
+  const spotifyId = isSpotifyId
+  ? id
+  : searchData?.data?.uri?.split(':')[2];
 
+console.log("🧠 Extracted Spotify ID:", spotifyId);
+
+  console.log("✅ Spotify Search Result:", searchData?.artists?.items?.[0]);
+
+  // Step 3: Fetch Spotify artist info
   const {
     data: artistData,
     isFetching: isFetchingArtist,
     error: artistError,
-  } = useSpotifyArtistDetailsQuery(spotifyId, { skip: !spotifyId });
+  } = useGetArtistDetailsQuery(spotifyId, { skip: !spotifyId });
 
   const {
     data: albumsData,
@@ -42,31 +50,36 @@ const ArtistDetails = () => {
     error: albumsError,
   } = useGetArtistAlbumsQuery(spotifyId, { skip: !spotifyId });
 
-  const artistName = isSpotifyId ? artistData?.artists?.[0]?.name : id;
-
   const {
-    data: shazamSearchData,
-    isFetching: isFetchingShazamSearch,
-    error: shazamSearchError,
-  } = useSearchShazamArtistQuery(artistName, { skip: !artistName });
+    data: topTracksData,
+    isFetching: isFetchingTopTracks,
+    error: topTracksError,
+  } = useGetArtistTopTracksQuery(spotifyId, { skip: !spotifyId });
 
-  const adamid = shazamSearchData?.tracks?.hits?.[0]?.artists?.[0]?.adamid;
-
-  const {
-    data: topSongsData,
-    isFetching: isFetchingTopSongs,
-    error: topSongsError,
-  } = useGetTopSongsByAdamIdQuery(adamid, { skip: !adamid });
+  useEffect(() => {
+    console.log("🔄 artistData:", artistData);
+    console.log("💿 albumsData:", albumsData);
+    console.log("🎵 topTracksData:", topTracksData);
+    console.log("🚨 Errors:", { artistError, albumsError, topTracksError, searchError });
+  }, [artistData, albumsData, topTracksData, artistError, albumsError, topTracksError]);
 
   const isLoading =
-    isSearching || isFetchingArtist || isFetchingAlbums || isFetchingShazamSearch || isFetchingTopSongs;
+    isSearching || isFetchingArtist || isFetchingAlbums || isFetchingTopTracks;
   const hasError =
-    !artistData?.artists?.[0] || artistError || albumsError || shazamSearchError || topSongsError;
+    !spotifyId || !artistData?.artists?.[0] || artistError || albumsError || topTracksError;
 
   if (isLoading) return <Loader title="Loading artist details..." />;
   if (hasError) return <Error />;
 
   const artist = artistData.artists[0];
+
+  const relatedSongs = topTracksData?.tracks?.map((track) => ({
+    title: track.name,
+    subtitle: track.artists?.[0]?.name,
+    images: { coverart: track.album?.images?.[0]?.url },
+    hub: { actions: [{ uri: track.external_urls?.spotify }] },
+    key: track.id,
+  })) || [];
 
   return (
     <div className="flex flex-col">
@@ -85,8 +98,8 @@ const ArtistDetails = () => {
       <div className="mt-10">
         <h2 className="text-white text-3xl font-bold">Top Songs</h2>
         <RelatedSongs
-          data={topSongsData?.data || []}
-          artistId={id}
+          data={relatedSongs}
+          artistId={spotifyId}
           isPlaying={isPlaying}
           activeSong={activeSong}
         />
