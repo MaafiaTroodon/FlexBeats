@@ -21,7 +21,7 @@ export const shazamCoreApi = createApi({
         params: {
           country_code: countryCode,
           genre: 'POP',
-          limit: 10,
+          limit: 40,
         },
       }),
     }),
