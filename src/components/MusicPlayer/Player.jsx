@@ -18,7 +18,10 @@ const Player = ({
       if (isPlaying) {
         const playPromise = ref.current.play();
         if (playPromise !== undefined) {
-          playPromise.catch((e) => console.error('Playback error:', e));
+          playPromise.catch((e) => {
+            console.error('⚠️ Playback error:', e);
+            console.warn('🧠 Problem URL:', activeSong?.url);
+          });
         }
       } else {
         ref.current.pause();
