@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useGetSongsBySearchQuery } from '../redux/services/shazamCore';
 import { Loader, Error, SongCard } from '../components';
+import { getPlayableUrl } from '../utils/getPlayableUrl'; // ✅ Add this at top
 
 const Search = () => {
   const { searchTerm } = useParams();
@@ -18,13 +19,7 @@ const Search = () => {
   .map((hit, i) => {
     const track = hit.track || hit;
 
-    const url =
-      track.url ||
-      track.hub?.actions?.find((a) => a?.uri)?.uri ||
-      track.hub?.options?.[0]?.actions?.[0]?.uri ||
-      track.hub?.providers?.[0]?.actions?.[0]?.uri ||
-      track.attributes?.previews?.[0]?.url ||
-      null;
+    const url = getPlayableUrl(track); // ✅ Use helper
 
     return {
       key: track.key || `${track.heading?.title}-${i}`,

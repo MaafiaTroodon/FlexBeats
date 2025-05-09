@@ -1,26 +1,30 @@
-// src/utils/getPlayableUrl.js
-
 export const getPlayableUrl = (track) => {
+    console.log("🧪 getPlayableUrl input:", track);
+  
+    const tryLog = (label, url) => {
+      if (url) console.log(`✅ ${label}: ${url}`);
+    };
+  
     if (!track) return null;
   
-    // ✅ 1. Apple preview (actual audio)
     const applePreview = track.stores?.apple?.previewurl;
-    if (applePreview?.includes('audio-ssl.itunes.apple.com')) return applePreview;
+    tryLog("Apple Preview", applePreview);
+    if (applePreview?.endsWith('.m4a') || applePreview?.endsWith('.mp3')) return applePreview;
   
-    // ✅ 2. attributes.previews
     const attrPreview = track.attributes?.previews?.[0]?.url;
-    if (attrPreview?.includes('audio-ssl.itunes.apple.com')) return attrPreview;
+    tryLog("Attribute Preview", attrPreview);
+    if (attrPreview?.endsWith('.m4a') || attrPreview?.endsWith('.mp3')) return attrPreview;
   
-    // ✅ 3. hub.actions (filter out links to /track/)
     const actionPreview = track.hub?.actions?.find(
-      (a) => a?.uri?.includes('audio-ssl.itunes.apple.com') || a?.uri?.includes('.m4a') || a?.uri?.includes('.mp3')
+      (a) => a?.uri?.endsWith('.m4a') || a?.uri?.endsWith('.mp3')
     )?.uri;
-    if (actionPreview?.includes('audio-ssl.itunes.apple.com') || actionPreview?.endsWith('.m4a') || actionPreview?.endsWith('.mp3')) {
-      return actionPreview;
-    }
+    tryLog("Action Preview", actionPreview);
+    if (actionPreview) return actionPreview;
   
-    // 🚫 Skip links that go to shazam.com/track (these are *not* playable streams)
-    if (track.url?.includes('shazam.com/track')) return null;
+    if (track.url?.includes('shazam.com/track')) {
+      console.log("❌ Skipping Shazam web URL:", track.url);
+      return null;
+    }
   
     return null;
   };

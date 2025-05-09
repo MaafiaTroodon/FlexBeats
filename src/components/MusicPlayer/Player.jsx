@@ -1,6 +1,5 @@
 /* eslint-disable jsx-a11y/media-has-caption */
 import React, { useRef, useEffect } from 'react';
-import { getPlayableUrl } from '../../utils/getPlayableUrl'; // ✅ Import utility
 
 const Player = ({
   activeSong,
@@ -14,8 +13,8 @@ const Player = ({
 }) => {
   const ref = useRef(null);
 
-  const audioUrl = getPlayableUrl(activeSong); // ✅ Resolve preview audio URL
-  console.log("🎵 Final audio URL:", audioUrl);
+  const audioUrl = activeSong?.url; // ✅ Use pre-parsed audio URL from Search.jsx
+  console.log('🎵 Final audio URL:', audioUrl);
 
   useEffect(() => {
     if (ref.current) {
