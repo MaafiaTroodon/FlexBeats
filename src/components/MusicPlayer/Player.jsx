@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/media-has-caption */
 import React, { useRef, useEffect } from 'react';
+import { getPlayableUrl } from '../../utils/getPlayableUrl'; // ✅ Import utility
 
 const Player = ({
   activeSong,
@@ -13,14 +14,17 @@ const Player = ({
 }) => {
   const ref = useRef(null);
 
+  const audioUrl = getPlayableUrl(activeSong); // ✅ Resolve preview audio URL
+  console.log("🎵 Final audio URL:", audioUrl);
+
   useEffect(() => {
     if (ref.current) {
-      if (isPlaying) {
+      if (isPlaying && audioUrl) {
         const playPromise = ref.current.play();
         if (playPromise !== undefined) {
           playPromise.catch((e) => {
             console.error('⚠️ Playback error:', e);
-            console.warn('🧠 Problem URL:', activeSong?.url);
+            console.warn('🧠 Problem URL:', audioUrl);
           });
         }
       } else {
@@ -40,7 +44,7 @@ const Player = ({
   return (
     <audio
       ref={ref}
-      src={activeSong?.url || ''}
+      src={audioUrl || ''}
       loop={repeat}
       onEnded={onEnded}
       onTimeUpdate={onTimeUpdate}
