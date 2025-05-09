@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSearchArtistQuery } from '../redux/services/spotify';
 
 const ArtistCard = ({ artist }) => {
   const navigate = useNavigate();
+  const { data, isFetching } = useSearchArtistQuery(artist.name);
+
+  const spotifyArtistId = data?.artists?.items?.[0]?.id;
+
+  const handleClick = () => {
+    if (!isFetching && spotifyArtistId) {
+      navigate(`/artists/${spotifyArtistId}`);
+    } else {
+      navigate(`/artists/unknown?name=${encodeURIComponent(artist.name)}`);
+    }
+  };
 
   return (
     <div
       className="flex flex-col w-[250px] p-4 bg-white/5 bg-opacity-80 backdrop-blur-sm animate-slideup rounded-lg cursor-pointer"
-      onClick={() => navigate(`/artists/${encodeURIComponent(artist.name.split(',')[0])}`)}
-
+      onClick={handleClick}
     >
       <img
         alt={artist.name}

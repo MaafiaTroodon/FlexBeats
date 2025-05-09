@@ -44,10 +44,10 @@ export const spotifyApi = createApi({
     }),
     getArtistDetails: builder.query({
       query: (spotifyArtistId) => ({
-        url: 'artists/',
-        params: { ids: spotifyArtistId },
+        url: `artists/${spotifyArtistId}`, // not /artists?ids=...
       }),
     }),
+    
     getArtistAlbums: builder.query({
       query: (artistId) => ({
         url: 'artist_albums/',

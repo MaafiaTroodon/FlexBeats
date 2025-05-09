@@ -12,25 +12,26 @@ import { setActiveSong, playPause } from '../redux/features/playerSlice';
 
 const ArtistDetails = () => {
   const dispatch = useDispatch();
-  const { id: artistName } = useParams(); // Comes from the URL
-  const encodedArtistName = encodeURIComponent(artistName?.split(',')[0]); // Handle "name, feat. other"
+  const { id: rawArtistParam } = useParams(); // URI-encoded
+  const decodedArtistName = decodeURIComponent(rawArtistParam).split(',')[0]?.trim(); // Clean name
+
+  // Normalize spacing and casing before searching
+  const searchQuery = decodedArtistName.replace(/[^a-zA-Z0-9 ]/g, '').toLowerCase();
+  
 
   const { activeSong, isPlaying } = useSelector((state) => state.player);
 
-  // Step 1: Search artist by name
   const { data: searchArtistData, isFetching: isFetchingArtistSearch, error: artistSearchError } =
-    useSearchArtistQuery(encodedArtistName);
+  useSearchArtistQuery(searchQuery); // ← use cleaned name!
+
   const spotifyArtistId = searchArtistData?.artists?.items?.[0]?.id;
 
-  // Step 2: Get full artist info
   const { data: artistData, isFetching: isFetchingArtistDetails, error: artistDetailsError } =
     useGetArtistDetailsQuery(spotifyArtistId, { skip: !spotifyArtistId });
 
-  // Step 3: Get artist albums
   const { data: albumsData, isFetching: isFetchingAlbums, error: albumsError } =
     useGetArtistAlbumsQuery(spotifyArtistId, { skip: !spotifyArtistId });
 
-  // Step 4: Get artist top tracks (for related songs)
   const { data: topTracksData, isFetching: isFetchingTopTracks } =
     useGetArtistTopTracksQuery(spotifyArtistId, { skip: !spotifyArtistId });
 
@@ -39,20 +40,21 @@ const ArtistDetails = () => {
     isFetchingArtistDetails ||
     isFetchingAlbums ||
     isFetchingTopTracks
-  )
-    return <Loader title="Loading artist details..." />;
+  ) return <Loader title="Loading artist details..." />;
 
   if (artistSearchError || artistDetailsError || albumsError) return <Error />;
 
-  const artist = artistData?.artists?.[0];
-  if (!artist) {
+  const artist = artistData;
+
+  if (!artist && searchArtistData?.artists?.items?.length === 0) {
     return (
       <div className="flex flex-col items-center text-white mt-20">
         <h2 className="text-2xl font-bold">Couldn't find this artist on Spotify</h2>
-        <p className="text-gray-400 mt-4">Search term: "{artistName}"</p>
+        <p className="text-gray-400 mt-4">Search term: "{searchQuery}"</p>
       </div>
     );
   }
+  
 
   const handlePauseClick = () => dispatch(playPause(false));
   const handlePlayClick = (song, i) => {
@@ -62,7 +64,6 @@ const ArtistDetails = () => {
 
   return (
     <div className="flex flex-col">
-      {/* Artist Header */}
       <DetailsHeader
         artistId={spotifyArtistId}
         artistData={{
@@ -75,7 +76,6 @@ const ArtistDetails = () => {
         }}
       />
 
-      {/* Artist Stats */}
       <div className="mt-10">
         <h2 className="text-white text-3xl font-bold">Artist Overview:</h2>
         <p className="text-gray-400 text-base my-4">Followers: {artist?.followers?.total?.toLocaleString()}</p>
@@ -83,7 +83,6 @@ const ArtistDetails = () => {
         <p className="text-gray-400 text-base my-4">Popularity Score: {artist?.popularity}/100</p>
       </div>
 
-      {/* Albums */}
       <div className="mt-10">
         <h2 className="text-white text-3xl font-bold">Top Releases:</h2>
         <div className="flex flex-wrap gap-4 mt-4">
@@ -100,7 +99,6 @@ const ArtistDetails = () => {
         </div>
       </div>
 
-      {/* Related Songs */}
       <div className="mt-10">
         <RelatedSongs
           data={topTracksData?.tracks || []}
