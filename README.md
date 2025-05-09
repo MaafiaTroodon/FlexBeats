@@ -6,6 +6,12 @@ Stream music, browse trending songs, search your favorite artists, and enjoy a s
 
 ---
 
+## 🌍 Live Demo
+
+Check out the live app here: [https://flexbeatsx.netlify.app](https://flexbeatsx.netlify.app)
+
+---
+
 ## 🚀 Features
 
 - 🔎 **Smart Search** — Find songs and artists instantly  
