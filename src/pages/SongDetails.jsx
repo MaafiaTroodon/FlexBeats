@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { DetailsHeader, Error, Loader, RelatedSongs } from '../components';
 import { setActiveSong, playPause } from '../redux/features/playerSlice';
-import { useSearchSongQuery, useGetTrackLyricsQuery, useGetTrackRecommendationsQuery } from '../redux/services/spotify';
+import { useGetSongsBySearchQuery, useGetTrackLyricsQuery, useGetTrackRecommendationsQuery } from '../redux/services/spotify';
 import { useGetTopChartsQuery } from '../redux/services/shazamCore';
 import axios from 'axios'; // NEW
 
@@ -19,7 +19,7 @@ const SongDetails = () => {
 
   const searchTerm = clickedSong ? `${clickedSong.attributes.name.replace(/[()]/g, '')} ${clickedSong.attributes.artistName}` : '';
 
-  const { data: spotifySearchData, isFetching: isFetchingSpotifySearch } = useSearchSongQuery(searchTerm, { skip: !clickedSong });
+  const { data: spotifySearchData, isFetching: isFetchingSpotifySearch } = useGetSongsBySearchQuery(searchTerm, { skip: !clickedSong });
   const spotifyTrackId = spotifySearchData?.tracks?.items?.[0]?.id;
 
   const { data: spotifyLyricsData, isFetching: isFetchingLyrics } = useGetTrackLyricsQuery(spotifyTrackId, { skip: !spotifyTrackId });

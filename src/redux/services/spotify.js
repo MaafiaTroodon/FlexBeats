@@ -1,6 +1,3 @@
-// ✅ Fixed spotify.js and ArtistDetails.jsx integration
-
-// --- src/redux/services/spotify.js ---
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const spotifyApi = createApi({
@@ -14,18 +11,25 @@ export const spotifyApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    searchSong: builder.query({
+    getSongsBySearch: builder.query({
       query: (searchTerm) => ({
         url: 'search/',
-        params: { q: searchTerm, type: 'track' },
+        params: {
+          q: searchTerm,
+          type: 'multi', // 🟢 Correct: allows fuzzy matching and broad search
+          limit: 10,
+          numberOfTopResults: 5,
+        },
       }),
     }),
+
     getTrackLyrics: builder.query({
-      query: (spotify_track_id) => ({
+      query: (id) => ({
         url: 'track_lyrics/',
-        params: { id: spotify_track_id },
+        params: { id },
       }),
     }),
+
     getTrackRecommendations: builder.query({
       query: ({ trackId, artistId }) => ({
         url: 'recommendations/',
@@ -36,42 +40,36 @@ export const spotifyApi = createApi({
         },
       }),
     }),
+
     searchArtist: builder.query({
       query: (artistName) => ({
         url: 'search/',
         params: { q: artistName, type: 'artist', limit: 1 },
       }),
     }),
+
     getArtistDetails: builder.query({
-      query: (spotifyArtistId) => ({
-        url: `artists/${spotifyArtistId}`, // not /artists?ids=...
-      }),
+      query: (id) => `artists/${id}`,
     }),
-    
+
     getArtistAlbums: builder.query({
-      query: (artistId) => ({
+      query: (id) => ({
         url: 'artist_albums/',
-        params: {
-          id: artistId,
-          offset: 0,
-          limit: 20,
-        },
+        params: { id, offset: 0, limit: 20 },
       }),
     }),
+
     getArtistTopTracks: builder.query({
-      query: (artistId) => ({
+      query: (id) => ({
         url: 'artist_top_tracks/',
-        params: {
-          id: artistId,
-          market: 'US',
-        },
+        params: { id, market: 'US' },
       }),
     }),
   }),
 });
 
 export const {
-  useSearchSongQuery,
+  useGetSongsBySearchQuery,
   useGetTrackLyricsQuery,
   useGetTrackRecommendationsQuery,
   useSearchArtistQuery,
