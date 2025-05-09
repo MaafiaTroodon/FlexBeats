@@ -16,12 +16,15 @@ const playerSlice = createSlice({
     setActiveSong: (state, action) => {
       const { song, data, i } = action.payload;
 
-      // 🔄 Normalize audio URL across different APIs
+      // ✅ Extract a valid URL for the audio preview
       let url = song?.url;
-      if (!url && song?.hub?.actions?.[0]?.uri) {
-        url = song.hub.actions[0].uri;
-      } else if (!url && song?.attributes?.previews?.[0]?.url) {
-        url = song.attributes.previews[0].url;
+
+      if (!url) {
+        url =
+          song?.hub?.actions?.find((a) => a.uri)?.uri || // primary
+          song?.hub?.options?.[0]?.actions?.[0]?.uri ||  // fallback option
+          song?.attributes?.previews?.[0]?.url ||        // Spotify-style previews
+          null;
       }
 
       state.activeSong = { ...song, url };
@@ -29,7 +32,8 @@ const playerSlice = createSlice({
       if (Array.isArray(data)) {
         state.currentSongs = data;
       } else if (data?.tracks?.hits) {
-        state.currentSongs = data.tracks.hits;
+        // Normalize structure: hits can be { track } or plain songs
+        state.currentSongs = data.tracks.hits.map((h) => h.track || h);
       } else if (data?.tracks) {
         state.currentSongs = data.tracks;
       } else {
@@ -43,12 +47,12 @@ const playerSlice = createSlice({
     nextSong: (state, action) => {
       const next = state.currentSongs[action.payload];
 
-      let url = next?.url;
-      if (!url && next?.hub?.actions?.[0]?.uri) {
-        url = next.hub.actions[0].uri;
-      } else if (!url && next?.attributes?.previews?.[0]?.url) {
-        url = next.attributes.previews[0].url;
-      }
+      let url =
+        next?.url ||
+        next?.hub?.actions?.find((a) => a.uri)?.uri ||
+        next?.hub?.options?.[0]?.actions?.[0]?.uri ||
+        next?.attributes?.previews?.[0]?.url ||
+        null;
 
       state.activeSong = { ...next, url };
       state.currentIndex = action.payload;
@@ -58,12 +62,12 @@ const playerSlice = createSlice({
     prevSong: (state, action) => {
       const prev = state.currentSongs[action.payload];
 
-      let url = prev?.url;
-      if (!url && prev?.hub?.actions?.[0]?.uri) {
-        url = prev.hub.actions[0].uri;
-      } else if (!url && prev?.attributes?.previews?.[0]?.url) {
-        url = prev.attributes.previews[0].url;
-      }
+      let url =
+        prev?.url ||
+        prev?.hub?.actions?.find((a) => a.uri)?.uri ||
+        prev?.hub?.options?.[0]?.actions?.[0]?.uri ||
+        prev?.attributes?.previews?.[0]?.url ||
+        null;
 
       state.activeSong = { ...prev, url };
       state.currentIndex = action.payload;

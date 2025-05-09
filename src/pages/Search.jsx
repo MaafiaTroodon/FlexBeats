@@ -14,16 +14,30 @@ const Search = () => {
 
   const rawHits = data?.data?.tracks?.hits || [];
 
-  const songs = rawHits.map((hit, i) => ({
-    key: hit.key || `${hit.heading?.title}-${i}`,
-    title: hit.heading?.title,
-    subtitle: hit.heading?.subtitle,
-    images: {
-      coverart: hit.images?.default,
-    },
-    artists: hit.artists,
-    url: hit.url,
-  }));
+  const songs = rawHits
+  .map((hit, i) => {
+    const track = hit.track || hit;
+
+    const url =
+      track.url ||
+      track.hub?.actions?.find((a) => a?.uri)?.uri ||
+      track.hub?.options?.[0]?.actions?.[0]?.uri ||
+      track.hub?.providers?.[0]?.actions?.[0]?.uri ||
+      track.attributes?.previews?.[0]?.url ||
+      null;
+
+    return {
+      key: track.key || `${track.heading?.title}-${i}`,
+      title: track.heading?.title || track.title,
+      subtitle: track.heading?.subtitle || track.subtitle,
+      images: {
+        coverart: track.images?.default || track.images?.coverart,
+      },
+      artists: track.artists || [],
+      url,
+    };
+  })
+  .filter(song => song.url?.includes('http') && song.images?.coverart);
 
   console.log('🟢 Songs parsed:', songs);
 
