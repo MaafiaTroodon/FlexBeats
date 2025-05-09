@@ -20,6 +20,13 @@ export const shazamCoreApi = createApi({
         },
       }),
     }),
+    getSongsByGenre: builder.query({
+      query: (genre) => ({
+        url: 'charts/get-top-songs-in_world_by_genre',
+        params: { genre, limit: 40 },
+      }),
+    }),
+    
     
     getSongsByCountry: builder.query({
       query: (countryCode) => ({
@@ -45,4 +52,5 @@ export const {
   useGetSongsByCountryQuery,
   useGetArtistDetailsQuery,
   useGetArtistTopSongsQuery,
+  useGetSongsByGenreQuery, // <-- add this
 } = shazamCoreApi;

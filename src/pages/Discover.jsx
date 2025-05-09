@@ -4,17 +4,20 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Error, Loader, SongCard } from '../components';
 import { genres } from '../assets/constants';
 import { selectGenreListId } from '../redux/features/playerSlice';
-import { useGetTopChartsQuery } from '../redux/services/shazamCore';
+import { useGetSongsByGenreQuery } from '../redux/services/shazamCore';
 
 const Discover = () => {
   const dispatch = useDispatch();
-  const { activeSong, isPlaying } = useSelector((state) => state.player);
-  const { data, isFetching, error } = useGetTopChartsQuery();
-  const [visibleCount, setVisibleCount] = useState(20); // Start with 20 songs
+  const { activeSong, isPlaying, genreListId } = useSelector((state) => state.player);
+  const [visibleCount, setVisibleCount] = useState(20);
 
-  const genreTitle = 'Pop';
+  const selectedGenre = genreListId || 'POP';
 
-  if (isFetching) return <Loader title="Loading songs..." />;
+  const { data, isFetching, error } = useGetSongsByGenreQuery(selectedGenre);
+
+  const genreTitle = genres.find((g) => g.value === selectedGenre)?.title || 'Pop';
+
+  if (isFetching) return <Loader title={`Loading ${genreTitle} songs...`} />;
   if (error) return <Error />;
 
   return (
@@ -24,6 +27,7 @@ const Discover = () => {
 
         <select
           onChange={(e) => dispatch(selectGenreListId(e.target.value))}
+          value={selectedGenre}
           className="bg-black text-gray-300 p-3 text-sm rounded-lg outline-none sm:mt-0 mt-5"
         >
           {genres.map((genre) => (
@@ -44,9 +48,8 @@ const Discover = () => {
               coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '',
             },
             artists: [{ adamid: rawSong.id }],
-            url: rawSong.attributes?.previews?.[0]?.url || '', 
+            url: rawSong.attributes?.previews?.[0]?.url || '',
           };
-          
 
           return (
             <SongCard
@@ -61,7 +64,6 @@ const Discover = () => {
         })}
       </div>
 
-      {/* ✅ Show More Button */}
       {visibleCount < data?.data?.length && (
         <div className="flex justify-center mt-6">
           <button
