@@ -44,8 +44,7 @@ const ArtistDetails = () => {
 
   if (artistSearchError || artistDetailsError || albumsError) return <Error />;
 
-  const artist = artistData;
-
+  const artist = artistData?.artists?.[0];
   if (!artist && searchArtistData?.artists?.items?.length === 0) {
     return (
       <div className="flex flex-col items-center text-white mt-20">

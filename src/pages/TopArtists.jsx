@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArtistCard, Loader, Error } from '../components';
 import { useGetTopChartsQuery } from '../redux/services/shazamCore';
+import { ARTIST_ID_MAP } from '../assets/constants';
 
 const TopArtists = () => {
   const { data, isFetching, error } = useGetTopChartsQuery();
@@ -8,7 +9,6 @@ const TopArtists = () => {
   if (isFetching) return <Loader title="Loading Top Artists..." />;
   if (error) return <Error />;
 
-  // ✅ Extract artist names for Spotify search
   const tracks = data?.data || [];
 
   const uniqueArtists = [];
@@ -16,7 +16,7 @@ const TopArtists = () => {
 
   tracks.forEach((track) => {
     const name = track?.attributes?.artistName;
-    if (name && !seen.has(name)) {
+    if (name && ARTIST_ID_MAP[name] && !seen.has(name)) {
       uniqueArtists.push({
         name,
         image: track?.attributes?.artwork?.url?.replace('{w}', '500').replace('{h}', '500'),

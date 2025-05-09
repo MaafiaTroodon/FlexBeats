@@ -23,3 +23,16 @@ export const links = [
   { name: 'Top Artists', to: '/top-artists', icon: HiOutlineUserGroup },
   { name: 'Top Charts', to: '/top-charts', icon: HiOutlineHashtag },
 ];
+
+
+export const ARTIST_ID_MAP = {
+  "Drake": "3TVXtAsR1Inumwj472S9r4",
+  "Lady Gaga": "1HY2Jd0NmPuamShAr6KMms",
+  "The Weeknd": "1Xyo4u8uXC1ZmMpatF05PJ",
+  "Davido": "0Y3agQaa6g2r0YmHPOO9rh",
+  "Alex Warren": "2cYqizH1XxqFtfFwyzEhS9",
+  "Doechii": "7gkRjL3yXrfbo1wKxkzFhp",
+  "Lola Young": "4NN2qUjuc7kF3oRkz9yWlG",
+  "Jazzworx": "7gSKMmPbA6BQdfcFNEh6RI",
+  "Connie Francis": "3OKg7YbOIatODzkRIbLJR4",
+};
