@@ -64,9 +64,37 @@ const TopPlay = () => {
   };
 
   const handlePlayClick = (song, i) => {
-    dispatch(setActiveSong({ song, data: topPlays, i }));
+    let url =
+      song?.hub?.actions?.[1]?.uri || // Spotify/Apple link
+      song?.hub?.actions?.[0]?.uri || // Fallback preview link
+      song?.attributes?.previews?.[0]?.url || // Spotify preview
+      '';
+  
+    const image =
+      song?.images?.coverart ||
+      song?.attributes?.artwork?.url?.replace('{w}', '500')?.replace('{h}', '500') ||
+      'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg';
+  
+    const normalized = {
+      key: song?.key || song?.id || i,
+      title: song?.title || song?.attributes?.name || 'Unknown',
+      subtitle: song?.subtitle || song?.attributes?.artistName || 'Unknown Artist',
+      images: { coverart: image },
+      hub: { actions: [{ uri: url }] },
+      url,
+      artists: song?.artists || [
+        {
+          adamid: song?.relationships?.artists?.data?.[0]?.id || null,
+        },
+      ],
+      id: song?.id || song?.key || i,
+    };
+  
+    dispatch(setActiveSong({ song: normalized, data: topPlays, i }));
     dispatch(playPause(true));
   };
+  
+  
 
   return (
     <div ref={divRef} className="xl:ml-6 ml-0 xl:mb-0 mb-6 flex-1 xl:max-w-[500px] max-w-full flex flex-col">

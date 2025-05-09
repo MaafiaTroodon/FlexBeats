@@ -13,8 +13,14 @@ export const shazamCoreApi = createApi({
   }),
   endpoints: (builder) => ({
     getTopCharts: builder.query({
-      query: () => 'charts/get-top-songs-in-world',
+      query: (limit = 40) => ({
+        url: 'charts/get-top-songs-in-world',
+        params: {
+          limit, // 🔁 now configurable
+        },
+      }),
     }),
+    
     getSongsByCountry: builder.query({
       query: (countryCode) => ({
         url: 'charts/get-top-songs-in_country_by_genre',
