@@ -1,6 +1,6 @@
 # 🎧 FlexBeats
 
-A modern, fully responsive Spotify 2.0 clone built using **React 18**, **Tailwind CSS**, **Redux Toolkit**, and powered by **ShazamCore** and **Spotify APIs**.
+A modern, fully responsive Spotify 2.0 clone built using **React 18**, **Tailwind CSS**, **Redux Toolkit**, **IP Geolocation** and powered by **ShazamCore** and **Spotify APIs**.
 
 Stream music, browse trending songs, search your favorite artists, and enjoy a seamless music experience — all from the browser.
 
@@ -30,7 +30,8 @@ Check out the live app here: [https://flexbeatsx.netlify.app](https://flexbeatsx
 - **Frontend**: React 18, Redux Toolkit, Tailwind CSS, Vite  
 - **APIs**:  
   - [Shazam Core API](https://rapidapi.com/tipsters/api/shazam-core)  
-  - [Spotify API](https://developer.spotify.com/documentation/web-api/)  
+  - [Spotify API](https://developer.spotify.com/documentation/web-api/)
+  - [IP Geolocation API](https://ipgeolocation.io/ip-location-api.html)  
 - **Deployment**: Netlify  
 - **State Management**: Redux  
 - **Routing**: React Router DOM  
