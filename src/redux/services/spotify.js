@@ -1,12 +1,22 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const rapidApiKey = import.meta.env.VITE_RAPIDAPI_KEY;
+const spotifyHost = import.meta.env.VITE_SPOTIFY_HOST || 'spotify23.p.rapidapi.com';
+
+if (!rapidApiKey) {
+  // Warn once in dev if the RapidAPI key is missing.
+  console.warn('Missing VITE_RAPIDAPI_KEY; Spotify requests will fail.');
+}
+
 export const spotifyApi = createApi({
   reducerPath: 'spotifyApi',
   baseQuery: fetchBaseQuery({
     baseUrl: 'https://spotify23.p.rapidapi.com/',
     prepareHeaders: (headers) => {
-      headers.set('x-rapidapi-key', '1aea0e1a6cmsh467bb5203be1de1p19752fjsn9fb10026f598');
-      headers.set('x-rapidapi-host', 'spotify23.p.rapidapi.com');
+      if (rapidApiKey) {
+        headers.set('x-rapidapi-key', rapidApiKey);
+      }
+      headers.set('x-rapidapi-host', spotifyHost);
       return headers;
     },
   }),

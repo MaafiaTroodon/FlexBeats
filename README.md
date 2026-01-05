@@ -89,9 +89,10 @@ Then open `http://localhost:3000` in your browser.
 Create a `.env` file at the root and add your API keys:
 
 ```env
-VITE_SHAZAM_CORE_RAPIDAPI_KEY=your_key_here
-VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
-VITE_SPOTIFY_CLIENT_SECRET=your_spotify_secret
+VITE_RAPIDAPI_KEY=your_rapidapi_key
+VITE_SHAZAM_CORE_HOST=shazam-core7.p.rapidapi.com
+VITE_SPOTIFY_HOST=spotify23.p.rapidapi.com
+VITE_GEO_API_KEY=your_ipgeolocation_key
 ```
 
 ---

@@ -1,12 +1,22 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const rapidApiKey = import.meta.env.VITE_RAPIDAPI_KEY;
+const shazamHost = import.meta.env.VITE_SHAZAM_CORE_HOST || 'shazam-core7.p.rapidapi.com';
+
+if (!rapidApiKey) {
+  // Warn once in dev if the RapidAPI key is missing.
+  console.warn('Missing VITE_RAPIDAPI_KEY; Shazam Core requests will fail.');
+}
+
 export const shazamCoreApi = createApi({
   reducerPath: 'shazamCoreApi',
   baseQuery: fetchBaseQuery({
     baseUrl: 'https://shazam-core7.p.rapidapi.com/',
     prepareHeaders: (headers) => {
-      headers.set('x-rapidapi-key', '1aea0e1a6cmsh467bb5203be1de1p19752fjsn9fb10026f598');
-      headers.set('x-rapidapi-host', 'shazam-core7.p.rapidapi.com');
+      if (rapidApiKey) {
+        headers.set('x-rapidapi-key', rapidApiKey);
+      }
+      headers.set('x-rapidapi-host', shazamHost);
       return headers;
     },
   }),
