@@ -20,12 +20,14 @@ const SongDetails = () => {
   const searchTerm = clickedSong ? `${clickedSong.attributes.name.replace(/[()]/g, '')} ${clickedSong.attributes.artistName}` : '';
 
   const { data: spotifySearchData, isFetching: isFetchingSpotifySearch } = useGetSongsBySearchQuery(searchTerm, { skip: !clickedSong });
-  const spotifyTrackId = spotifySearchData?.tracks?.items?.[0]?.id;
+  const spotifyTrack = spotifySearchData?.tracks?.items?.[0]?.data;
+  const spotifyTrackId = spotifyTrack?.id;
+  const spotifyArtistId = spotifyTrack?.artists?.items?.[0]?.uri?.split(':').pop();
 
   const { data: spotifyLyricsData, isFetching: isFetchingLyrics } = useGetTrackLyricsQuery(spotifyTrackId, { skip: !spotifyTrackId });
   const { data: recommendationsData, isFetching: isFetchingRecommendations } = useGetTrackRecommendationsQuery(
-    { trackId: spotifyTrackId, artistId: spotifySearchData?.tracks?.items?.[0]?.artists?.[0]?.id },
-    { skip: !spotifyTrackId }
+    { trackId: spotifyTrackId, artistId: spotifyArtistId },
+    { skip: !spotifyTrackId || !spotifyArtistId }
   );
 
   // 📌 BACKUP LYRICS FETCHING
@@ -82,20 +84,20 @@ const SongDetails = () => {
     dispatch(playPause(true));
   };
 
-  const spotifyTrack = spotifySearchData?.tracks?.items?.[0];
-
   return (
     <div className="flex flex-col">
       <DetailsHeader
         artistId={artistId}
         songData={{
           title: spotifyTrack?.name || clickedSong?.attributes?.name || 'Unknown Title',
-          subtitle: spotifyTrack?.artists?.[0]?.name || clickedSong?.attributes?.artistName || 'Unknown Artist',
+          subtitle: spotifyTrack?.artists?.items?.[0]?.profile?.name || clickedSong?.attributes?.artistName || 'Unknown Artist',
           images: {
-            coverart: spotifyTrack?.album?.images?.[0]?.url || clickedSong?.attributes?.artwork?.url?.replace('{w}', '500')?.replace('{h}', '500'),
+            coverart:
+              spotifyTrack?.albumOfTrack?.coverArt?.sources?.[0]?.url ||
+              clickedSong?.attributes?.artwork?.url?.replace('{w}', '500')?.replace('{h}', '500'),
           },
           genres: {
-            primary: spotifyTrack?.album?.name || clickedSong?.attributes?.genreNames?.[0],
+            primary: spotifyTrack?.albumOfTrack?.name || clickedSong?.attributes?.genreNames?.[0],
           },
         }}
       />

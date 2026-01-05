@@ -33,6 +33,17 @@ export const spotifyApi = createApi({
       }),
     }),
 
+    getTracksBySearch: builder.query({
+      query: ({ query, limit = 40 }) => ({
+        url: 'search/',
+        params: {
+          q: query,
+          type: 'tracks',
+          limit,
+        },
+      }),
+    }),
+
     getTrackLyrics: builder.query({
       query: (id) => ({
         url: 'track_lyrics/',
@@ -80,6 +91,7 @@ export const spotifyApi = createApi({
 
 export const {
   useGetSongsBySearchQuery,
+  useGetTracksBySearchQuery,
   useGetTrackLyricsQuery,
   useGetTrackRecommendationsQuery,
   useSearchArtistQuery,

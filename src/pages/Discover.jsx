@@ -5,6 +5,8 @@ import { Error, Loader, SongCard } from '../components';
 import { genres } from '../assets/constants';
 import { selectGenreListId } from '../redux/features/playerSlice';
 import { useGetSongsByGenreQuery } from '../redux/services/shazamCore';
+import { useGetTracksBySearchQuery } from '../redux/services/spotify';
+import { mapSpotifyTrackToSong } from '../utils/spotifyMapper';
 
 const Discover = () => {
   const dispatch = useDispatch();
@@ -14,11 +16,23 @@ const Discover = () => {
   const selectedGenre = genreListId || 'POP';
 
   const { data, isFetching, error } = useGetSongsByGenreQuery(selectedGenre);
+  const shazamError = error || data?.error;
+  const shazamSongs = Array.isArray(data?.data) ? data.data : [];
+  const shouldUseSpotify = !!shazamError || (!isFetching && shazamSongs.length === 0);
+  const { data: spotifyData, isFetching: isFetchingSpotify, error: spotifyError } = useGetTracksBySearchQuery(
+    { query: `genre:${selectedGenre.toLowerCase()}`, limit: 40 },
+    { skip: !shouldUseSpotify }
+  );
 
   const genreTitle = genres.find((g) => g.value === selectedGenre)?.title || 'Pop';
 
-  if (isFetching) return <Loader title={`Loading ${genreTitle} songs...`} />;
-  if (error) return <Error />;
+  if (isFetching || (shouldUseSpotify && isFetchingSpotify)) {
+    return <Loader title={`Loading ${genreTitle} songs...`} />;
+  }
+
+  if ((shazamError && spotifyError) || (!shazamSongs.length && !spotifyData?.tracks?.items?.length)) {
+    return <Error />;
+  }
 
   return (
     <div className="flex flex-col">
@@ -39,32 +53,32 @@ const Discover = () => {
       </div>
 
       <div className="flex flex-wrap sm:justify-start justify-center gap-8">
-        {data?.data?.slice(0, visibleCount).map((rawSong, i) => {
-          const song = {
-            key: rawSong.id,
-            title: rawSong.attributes?.albumName || 'Unknown',
-            subtitle: rawSong.attributes?.artistName || 'Unknown Artist',
-            images: {
-              coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '',
-            },
-            artists: [{ adamid: rawSong.id }],
-            url: rawSong.attributes?.previews?.[0]?.url || '',
-          };
-
-          return (
-            <SongCard
-              key={song.key}
-              song={song}
-              isPlaying={isPlaying}
-              activeSong={activeSong}
-              data={data}
-              i={i}
-            />
-          );
-        })}
+        {(
+          shouldUseSpotify
+            ? (spotifyData?.tracks?.items || []).slice(0, visibleCount).map(mapSpotifyTrackToSong)
+            : shazamSongs.slice(0, visibleCount).map((rawSong, i) => ({
+                key: rawSong.id,
+                title: rawSong.attributes?.albumName || 'Unknown',
+                subtitle: rawSong.attributes?.artistName || 'Unknown Artist',
+                images: {
+                  coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '',
+                },
+                artists: [{ adamid: rawSong.id }],
+                url: rawSong.attributes?.previews?.[0]?.url || '',
+              }))
+        ).map((song, i) => (
+          <SongCard
+            key={song.key}
+            song={song}
+            isPlaying={isPlaying}
+            activeSong={activeSong}
+            data={shouldUseSpotify ? spotifyData?.tracks?.items || [] : data}
+            i={i}
+          />
+        ))}
       </div>
 
-      {visibleCount < data?.data?.length && (
+      {visibleCount < (shouldUseSpotify ? spotifyData?.tracks?.items?.length : shazamSongs.length) && (
         <div className="flex justify-center mt-6">
           <button
             onClick={() => setVisibleCount((prev) => prev + 20)}
