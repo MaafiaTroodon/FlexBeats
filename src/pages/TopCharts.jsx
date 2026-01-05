@@ -5,16 +5,27 @@ import { useSelector } from 'react-redux';
 
 import { Error, Loader, SongCard } from '../components';
 import { useGetTopChartsQuery } from '../redux/services/shazamCore';
+import { useGetTracksBySearchQuery } from '../redux/services/spotify';
+import { mapSpotifyTrackToSong } from '../utils/spotifyMapper';
 
 const TopCharts = () => {
   const { data, isFetching, error } = useGetTopChartsQuery();
+  const shazamError = error || data?.error;
+  const hasShazamSongs = Array.isArray(data?.data) && data.data.length > 0;
+  const shouldUseSpotify = !!shazamError || (!isFetching && !hasShazamSongs);
+  const { data: spotifyData, isFetching: isFetchingSpotify, error: spotifyError } = useGetTracksBySearchQuery(
+    { query: 'top hits', limit: 20 },
+    { skip: !shouldUseSpotify }
+  );
   const { activeSong, isPlaying } = useSelector((state) => state.player);
 
-  if (isFetching) return <Loader title="Loading Top Charts..." />;
-  if (error || !Array.isArray(data?.data)) return <Error />;
+  if (isFetching || (shouldUseSpotify && isFetchingSpotify)) return <Loader title="Loading Top Charts..." />;
+  if ((shouldUseSpotify && spotifyError) || (!shouldUseSpotify && !Array.isArray(data?.data))) return <Error />;
 
   // Match AroundYou structure (ShazamCore uses .data[].attributes)
-  const parsedSongs = data.data.map((song) => {
+  const parsedSongs = shouldUseSpotify
+    ? (spotifyData?.tracks?.items || []).map(mapSpotifyTrackToSong)
+    : data.data.map((song) => {
     const attributes = song.attributes || {};
     return {
       title: attributes.name || 'Unknown Title',
@@ -38,6 +49,8 @@ const TopCharts = () => {
       ],
     };
   });
+
+  if (!parsedSongs.length) return <Error />;
 
   return (
     <div className="flex flex-col">

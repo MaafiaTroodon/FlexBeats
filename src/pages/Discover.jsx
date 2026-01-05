@@ -53,26 +53,38 @@ const Discover = () => {
       </div>
 
       <div className="flex flex-wrap sm:justify-start justify-center gap-8">
-        {(
-          shouldUseSpotify
-            ? (spotifyData?.tracks?.items || []).slice(0, visibleCount).map(mapSpotifyTrackToSong)
-            : shazamSongs.slice(0, visibleCount).map((rawSong, i) => ({
-                key: rawSong.id,
-                title: rawSong.attributes?.albumName || 'Unknown',
-                subtitle: rawSong.attributes?.artistName || 'Unknown Artist',
-                images: {
-                  coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '',
-                },
-                artists: [{ adamid: rawSong.id }],
-                url: rawSong.attributes?.previews?.[0]?.url || '',
-              }))
-        ).map((song, i) => (
+        {(shouldUseSpotify
+          ? (spotifyData?.tracks?.items || []).map(mapSpotifyTrackToSong)
+          : shazamSongs.map((rawSong, i) => ({
+              key: rawSong.id,
+              title: rawSong.attributes?.albumName || 'Unknown',
+              subtitle: rawSong.attributes?.artistName || 'Unknown Artist',
+              images: {
+                coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '',
+              },
+              artists: [{ adamid: rawSong.id }],
+              url: rawSong.attributes?.previews?.[0]?.url || '',
+            }))
+        )
+          .slice(0, visibleCount)
+          .map((song, i) => (
           <SongCard
             key={song.key}
             song={song}
             isPlaying={isPlaying}
             activeSong={activeSong}
-            data={shouldUseSpotify ? spotifyData?.tracks?.items || [] : data}
+            data={shouldUseSpotify
+              ? (spotifyData?.tracks?.items || []).map(mapSpotifyTrackToSong)
+              : shazamSongs.map((rawSong) => ({
+                  key: rawSong.id,
+                  title: rawSong.attributes?.albumName || 'Unknown',
+                  subtitle: rawSong.attributes?.artistName || 'Unknown Artist',
+                  images: {
+                    coverart: rawSong.attributes?.artwork?.url?.replace('{w}x{h}', '400x400') || '',
+                  },
+                  artists: [{ adamid: rawSong.id }],
+                  url: rawSong.attributes?.previews?.[0]?.url || '',
+                }))}
             i={i}
           />
         ))}

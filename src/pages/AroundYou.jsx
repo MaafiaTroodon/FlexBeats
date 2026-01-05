@@ -6,6 +6,8 @@ import { useSelector } from 'react-redux';
 
 import { Error, Loader, SongCard } from '../components';
 import { useGetSongsByCountryQuery } from '../redux/services/shazamCore';
+import { useGetTracksBySearchQuery } from '../redux/services/spotify';
+import { mapSpotifyTrackToSong } from '../utils/spotifyMapper';
 
 const AroundYou = () => {
   const [country, setCountry] = useState('');
@@ -34,6 +36,13 @@ const AroundYou = () => {
   const { data, isFetching, error } = useGetSongsByCountryQuery(country, {
     skip: !country,
   });
+  const shazamError = error || data?.error;
+  const hasShazamSongs = Array.isArray(data?.data) && data.data.length > 0;
+  const shouldUseSpotify = !!shazamError || (!isFetching && !hasShazamSongs);
+  const { data: spotifyData, isFetching: isFetchingSpotify, error: spotifyError } = useGetTracksBySearchQuery(
+    { query: `top hits ${country || 'US'}`, limit: 20 },
+    { skip: !shouldUseSpotify }
+  );
 
   useEffect(() => {
     if (data) {
@@ -46,13 +55,17 @@ const AroundYou = () => {
   }, [data, error]);
 
   // Handle loading or errors
-  if (loading || isFetching) return <Loader title="Loading Songs around you..." />;
-  if (error || !Array.isArray(data?.data)) return <Error />;
+  if (loading || isFetching || (shouldUseSpotify && isFetchingSpotify)) {
+    return <Loader title="Loading Songs around you..." />;
+  }
+  if ((shouldUseSpotify && spotifyError) || (!shouldUseSpotify && !Array.isArray(data?.data))) return <Error />;
 
   // Map song fields correctly
   // Inside AroundYou.jsx
 
-const parsedSongs = data.data.map((song) => {
+  const parsedSongs = shouldUseSpotify
+    ? (spotifyData?.tracks?.items || []).map(mapSpotifyTrackToSong)
+    : data.data.map((song) => {
     const attributes = song.attributes || {};
     return {
       title: attributes.name || 'Unknown Title',
@@ -76,6 +89,8 @@ const parsedSongs = data.data.map((song) => {
       ],
     };
   });
+
+  if (!parsedSongs.length) return <Error />;
   
 
   return (
