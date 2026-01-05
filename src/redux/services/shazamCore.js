@@ -11,7 +11,7 @@ if (!rapidApiKey) {
 export const shazamCoreApi = createApi({
   reducerPath: 'shazamCoreApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://shazam-core7.p.rapidapi.com/',
+    baseUrl: `https://${shazamHost}/`,
     prepareHeaders: (headers) => {
       if (rapidApiKey) {
         headers.set('x-rapidapi-key', rapidApiKey);

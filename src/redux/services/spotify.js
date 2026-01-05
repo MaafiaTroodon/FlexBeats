@@ -11,7 +11,7 @@ if (!rapidApiKey) {
 export const spotifyApi = createApi({
   reducerPath: 'spotifyApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://spotify23.p.rapidapi.com/',
+    baseUrl: `https://${spotifyHost}/`,
     prepareHeaders: (headers) => {
       if (rapidApiKey) {
         headers.set('x-rapidapi-key', rapidApiKey);
