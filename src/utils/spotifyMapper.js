@@ -9,11 +9,12 @@ export const mapSpotifyTrackToSong = (item, index = 0) => {
 
   return {
     key: track?.id || `${track?.name || 'track'}-${index}`,
+    spotifyId: track?.id || null,
     title: track?.name || 'Unknown Title',
     subtitle: artistName,
     images: { coverart: cover },
     hub: { actions: [] },
-    url: null,
+    url: track?.preview_url || null,
     artists: artist?.uri
       ? [{ adamid: artist.uri.split(':').pop() }]
       : [],

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { nextSong, prevSong, playPause } from '../../redux/features/playerSlice';
+import { nextSong, prevSong, playPause, setActiveSongUrl } from '../../redux/features/playerSlice';
+import { useLazyGetTrackDetailsQuery } from '../../redux/services/spotify';
 import Controls from './Controls';
 import Player from './Player';
 import Seekbar from './Seekbar';
@@ -17,10 +18,26 @@ const MusicPlayer = () => {
   const [repeat, setRepeat] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const dispatch = useDispatch();
+  const [fetchTrackDetails] = useLazyGetTrackDetailsQuery();
 
   useEffect(() => {
     if (currentSongs.length) dispatch(playPause(true));
   }, [currentIndex]);
+
+  useEffect(() => {
+    const spotifyId = activeSong?.spotifyId;
+    if (!spotifyId || activeSong?.url) return;
+
+    fetchTrackDetails(spotifyId)
+      .unwrap()
+      .then((response) => {
+        const previewUrl = response?.tracks?.[0]?.preview_url;
+        if (previewUrl) {
+          dispatch(setActiveSongUrl({ url: previewUrl, key: activeSong?.key, spotifyId }));
+        }
+      })
+      .catch(() => {});
+  }, [activeSong?.spotifyId, activeSong?.url, fetchTrackDetails, dispatch]);
 
   const handlePlayPause = () => {
     if (!isActive) return;

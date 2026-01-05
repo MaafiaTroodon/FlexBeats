@@ -43,6 +43,23 @@ const playerSlice = createSlice({
       state.currentIndex = i;
       state.isActive = true;
     },
+    setActiveSongUrl: (state, action) => {
+      const { url, key, spotifyId } = action.payload || {};
+      if (!url) return;
+
+      state.activeSong = { ...state.activeSong, url };
+
+      if (Array.isArray(state.currentSongs)) {
+        state.currentSongs = state.currentSongs.map((song) => {
+          const matchesKey = key && song?.key === key;
+          const matchesSpotify = spotifyId && song?.spotifyId === spotifyId;
+          if (matchesKey || matchesSpotify) {
+            return { ...song, url };
+          }
+          return song;
+        });
+      }
+    },
 
     nextSong: (state, action) => {
       const next = state.currentSongs[action.payload];
@@ -86,6 +103,7 @@ const playerSlice = createSlice({
 
 export const {
   setActiveSong,
+  setActiveSongUrl,
   nextSong,
   prevSong,
   playPause,
